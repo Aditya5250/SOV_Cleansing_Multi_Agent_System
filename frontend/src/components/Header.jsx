@@ -20,11 +20,25 @@ export function Header({ sessionId, filename, onReset, isConfigOpen, setIsConfig
 
   useEffect(() => {
     let isMounted = true;
-    checkBackendHealth(getApiBase()).then((res) => {
-      if (isMounted) setBackendStatus(res.online ? 'online' : 'offline');
-    });
+    let timer = null;
+
+    const pollBackend = async () => {
+      const res = await checkBackendHealth(getApiBase());
+      if (!isMounted) return;
+      if (res.online) {
+        setBackendStatus('online');
+      } else {
+        setBackendStatus('offline');
+        // Auto-retry in 5 seconds to gracefully handle Render free-tier instance wakeups
+        timer = setTimeout(pollBackend, 5000);
+      }
+    };
+
+    pollBackend();
+
     return () => {
       isMounted = false;
+      if (timer) clearTimeout(timer);
     };
   }, []);
 

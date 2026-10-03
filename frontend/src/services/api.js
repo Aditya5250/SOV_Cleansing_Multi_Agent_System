@@ -4,6 +4,9 @@
  * and smart detection of private cloud hostnames.
  */
 
+export const DEFAULT_PRODUCTION_BACKEND_URL = 'https://sov-cleansing-backend-uk4i.onrender.com';
+export const DEFAULT_LOCAL_BACKEND_URL = 'http://127.0.0.1:8000';
+
 export function getCustomBackendUrl() {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('sov_backend_url') || '';
@@ -32,19 +35,29 @@ export function getApiBase() {
 
   // 2. Check build-time VITE_API_URL
   const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
-  if (!rawApiUrl) return '';
-
-  // Check if rawApiUrl is a Render private network host (e.g. "sov-cleansing-backend")
-  // Public domains must contain a dot (e.g. .onrender.com) or localhost/127.0.0.1
-  const hostOnly = rawApiUrl.replace(/^https?:\/\//, '').split(':')[0];
-  if (!hostOnly.includes('.') && hostOnly !== 'localhost' && hostOnly !== '127.0.0.1') {
-    // This is an internal private hostname inaccessible to client browsers
-    return '';
+  if (rawApiUrl) {
+    const hostOnly = rawApiUrl.replace(/^https?:\/\//, '').split(':')[0];
+    if (hostOnly.includes('.') || hostOnly === 'localhost' || hostOnly === '127.0.0.1') {
+      return rawApiUrl.startsWith('http://') || rawApiUrl.startsWith('https://')
+        ? rawApiUrl
+        : `https://${rawApiUrl}`;
+    }
   }
 
-  return rawApiUrl.startsWith('http://') || rawApiUrl.startsWith('https://')
-    ? rawApiUrl
-    : `https://${rawApiUrl}`;
+  // 3. Smart Environment Fallback:
+  // If running locally in browser, connect to local backend
+  if (typeof window !== 'undefined') {
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    if (isLocalhost) {
+      return DEFAULT_LOCAL_BACKEND_URL;
+    }
+    // Deployed in cloud (Render, Vercel, etc.): connect directly to deployed Render backend
+    return DEFAULT_PRODUCTION_BACKEND_URL;
+  }
+
+  return DEFAULT_PRODUCTION_BACKEND_URL;
 }
 
 export function getBaseUrl() {
@@ -56,12 +69,13 @@ export const API_BASE = getApiBase();
 
 /**
  * Health check to verify if the backend is reachable
+ * Uses 20-second timeout to handle Render free-tier cold starts
  */
 export async function checkBackendHealth(targetBaseUrl) {
   const base = targetBaseUrl !== undefined ? targetBaseUrl.replace(/\/$/, '') : getApiBase();
-  const url = base ? `${base}/health` : '/api/health';
+  const url = base ? `${base}/api/health` : '/api/health';
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
     if (!res.ok) return { online: false, status: res.status };
     const data = await res.json();
     return { online: true, data };
