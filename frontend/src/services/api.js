@@ -1,4 +1,7 @@
-export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+export const API_BASE = rawApiUrl
+  ? (rawApiUrl.startsWith('http://') || rawApiUrl.startsWith('https://') ? rawApiUrl : `https://${rawApiUrl}`)
+  : '';
 const BASE_URL = `${API_BASE}/api`;
 
 export async function uploadSOVFile(file) {
