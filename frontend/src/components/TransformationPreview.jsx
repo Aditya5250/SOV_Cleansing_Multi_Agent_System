@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TARGET_FIELDS } from '../types/sov';
+import { API_BASE } from '../services/api';
 import { 
   FileCheck2, 
   Download, 
@@ -17,6 +18,12 @@ export function TransformationPreview({
 }) {
   const [activeTab, setActiveTab] = useState('preview');
   const [auditSearch, setAuditSearch] = useState('');
+
+  const resolveUrl = (url) => {
+    if (!url) return '#';
+    if (url.startsWith('http')) return url;
+    return `${API_BASE}${url}`;
+  };
 
   const filteredAudit = auditLog.filter((entry) => {
     if (!auditSearch) return true;
@@ -55,7 +62,7 @@ export function TransformationPreview({
         {/* Download Buttons */}
         <div className="flex items-center flex-wrap gap-2 self-start sm:self-auto">
           <a
-            href={result.download_sov_url}
+            href={resolveUrl(result.download_sov_url)}
             download="Cleaned_SOV.xlsx"
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
           >
@@ -64,7 +71,7 @@ export function TransformationPreview({
           </a>
 
           <a
-            href={result.download_audit_xlsx_url}
+            href={resolveUrl(result.download_audit_xlsx_url)}
             download="Audit_Log.xlsx"
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all cursor-pointer"
           >
@@ -73,7 +80,7 @@ export function TransformationPreview({
           </a>
 
           <a
-            href={result.download_audit_json_url}
+            href={resolveUrl(result.download_audit_json_url)}
             download="Audit_Log.json"
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all cursor-pointer"
           >
