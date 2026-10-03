@@ -44,9 +44,14 @@ class EmbeddingService:
 
     def _init_model(self):
         """Lazy load sentence transformer or fallback to semantic token TF-IDF."""
+        model_name = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
+        if not model_name or model_name.strip().lower() in ["none", "false", "disabled", "off", "0"]:
+            print("INFO: Semantic transformer disabled. Using fast n-gram token vectorizer.")
+            self._model = None
+            return
+
         try:
             from sentence_transformers import SentenceTransformer
-            model_name = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
             self._model = SentenceTransformer(model_name)
             self._precompute_target_embeddings()
         except Exception as e:
