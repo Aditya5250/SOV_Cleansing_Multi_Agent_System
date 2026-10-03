@@ -103,9 +103,23 @@ class ExcelService:
         }
 
     @staticmethod
+    def _read_csv_safe(file_path: str, **kwargs) -> pd.DataFrame:
+        """
+        Read CSV with automatic multi-encoding fallback (UTF-8, UTF-8-sig, Latin-1, CP1252)
+        and resilient character replacement for malformed bytes.
+        """
+        encodings = ["utf-8", "utf-8-sig", "latin-1", "cp1252", "iso-8859-1"]
+        for enc in encodings:
+            try:
+                return pd.read_csv(file_path, encoding=enc, **kwargs)
+            except (UnicodeDecodeError, UnicodeError):
+                continue
+        return pd.read_csv(file_path, encoding="utf-8", encoding_errors="replace", **kwargs)
+
+    @staticmethod
     def _analyze_csv(file_path: str) -> Dict[str, Any]:
         """Analyze CSV structure."""
-        df_sample = pd.read_csv(file_path, nrows=50, header=None)
+        df_sample = ExcelService._read_csv_safe(file_path, nrows=50, header=None)
         rows_sample = df_sample.values.tolist()
         best_header_row, best_density = ExcelService._detect_header_row(rows_sample)
         
@@ -191,7 +205,7 @@ class ExcelService:
         """
         skip = max(0, header_row - 1)
         if file_path.lower().endswith(".csv"):
-            df = pd.read_csv(file_path, skiprows=skip)
+            df = ExcelService._read_csv_safe(file_path, skiprows=skip)
         else:
             df = pd.read_excel(file_path, sheet_name=sheet_name, skiprows=skip, engine="openpyxl")
 

@@ -72,6 +72,7 @@ export function UploadSection({
         } ${isLoading ? 'opacity-80 pointer-events-none' : ''}`}
       >
         <input
+          id="sov-file-upload-input"
           type="file"
           ref={fileInputRef}
           onChange={handleFileInputChange}
