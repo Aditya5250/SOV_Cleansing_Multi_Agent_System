@@ -43,6 +43,35 @@ async def health_check():
         ]
     }
 
+# Serve frontend static files if dist exists (e.g. unified Docker container / Hugging Face Spaces)
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi import Request
+
+frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+if os.path.exists(frontend_dist):
+    app.mount("/static-assets", StaticFiles(directory=frontend_dist), name="static-assets")
+
+    @app.exception_handler(404)
+    async def spa_404_handler(request: Request, exc: Exception):
+        if not request.url.path.startswith("/api/"):
+            # Check if direct file exists in frontend/dist
+            rel_path = request.url.path.lstrip("/")
+            file_path = os.path.join(frontend_dist, rel_path)
+            if rel_path and os.path.isfile(file_path):
+                return FileResponse(file_path)
+            index_path = os.path.join(frontend_dist, "index.html")
+            if os.path.exists(index_path):
+                return FileResponse(index_path)
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
+    @app.get("/")
+    async def serve_index():
+        index_path = os.path.join(frontend_dist, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        return {"message": "Frontend not built"}
+
 if __name__ == "__main__":
     host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", "8000"))

@@ -1,3 +1,13 @@
+---
+title: SOV Cleansing Multi Agent System
+emoji: 📑
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Agentic SOV Cleansing & Intelligence System
 ### Automating Statement of Values Standardisation Through Collaborative AI Agents with Human-in-the-Loop Approval
 
