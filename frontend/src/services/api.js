@@ -59,7 +59,7 @@ export const API_BASE = getApiBase();
  */
 export async function checkBackendHealth(targetBaseUrl) {
   const base = targetBaseUrl !== undefined ? targetBaseUrl.replace(/\/$/, '') : getApiBase();
-  const url = base ? `${base}/health` : '/health';
+  const url = base ? `${base}/health` : '/api/health';
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) return { online: false, status: res.status };
