@@ -30,6 +30,7 @@ export function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState(null);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // Human Review State
   const [decisions, setDecisions] = useState({});
@@ -191,22 +192,34 @@ export function App() {
         sessionId={pipelineState?.session_id}
         filename={pipelineState?.file_info?.filename}
         onReset={pipelineState ? handleReset : undefined}
+        isConfigOpen={isConfigOpen}
+        setIsConfigOpen={setIsConfigOpen}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Error Alert Banner */}
         {errorMessage && (
-          <div className="bg-rose-950/40 border border-rose-500/50 rounded-2xl p-4 flex items-start space-x-3 text-sm text-rose-300 shadow-lg">
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <span className="font-semibold">Error:</span> {errorMessage}
+          <div className="bg-rose-950/40 border border-rose-500/50 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-rose-300 shadow-lg">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+              <div className="whitespace-pre-line">
+                <span className="font-semibold">Error:</span> {errorMessage}
+              </div>
             </div>
-            <button
-              onClick={() => setErrorMessage(null)}
-              className="text-xs text-rose-400 hover:text-white underline cursor-pointer"
-            >
-              Dismiss
-            </button>
+            <div className="flex items-center space-x-3 shrink-0 self-end sm:self-auto">
+              <button
+                onClick={() => setIsConfigOpen(true)}
+                className="px-3 py-1.5 rounded-lg bg-rose-900/60 hover:bg-rose-800 text-xs font-semibold text-white border border-rose-600/50 transition-all cursor-pointer shadow-sm"
+              >
+                Configure Backend URL
+              </button>
+              <button
+                onClick={() => setErrorMessage(null)}
+                className="text-xs text-rose-400 hover:text-white underline cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 

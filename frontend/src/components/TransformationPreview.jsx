@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TARGET_FIELDS } from '../types/sov';
-import { API_BASE } from '../services/api';
+import { getApiBase } from '../services/api';
 import { 
   FileCheck2, 
   Download, 
@@ -22,7 +22,8 @@ export function TransformationPreview({
   const resolveUrl = (url) => {
     if (!url) return '#';
     if (url.startsWith('http')) return url;
-    return `${API_BASE}${url}`;
+    const base = getApiBase();
+    return `${base}${url}`;
   };
 
   const filteredAudit = auditLog.filter((entry) => {
